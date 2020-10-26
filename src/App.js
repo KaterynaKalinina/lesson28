@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import List from './shared/List';
-import { last, defaultTo } from "lodash";
+import { last, defaultTo, uniq, includes, filter } from "lodash";
 
 const myList = [
   {
@@ -23,6 +23,15 @@ const myList = [
 
 export default function App() {
   const [list, setList] = useState([...myList]);
+  const [selectedList, setSelectedList] = useState([]);
+  const inputRef = useRef(null);
+
+  const clearInput = () => {
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
+  }
+
   const handleInputKeyDown = e => {
 
     if (e.key === 'Enter') {
@@ -34,16 +43,40 @@ export default function App() {
           value: e.target.value
         }
       ]);
+
+      clearInput();
+    }
+
+  };
+
+  const handleSelect = e => {
+    if (includes(selectedList, e)) {
+      setSelectedList(filter(selectedList, selectedEelement => selectedEelement !== e));
+    } else {
+      setSelectedList(uniq([...selectedList, e]));
     }
   };
 
+  const handleDelete = e => {
+    setList(filter(list, selectedEelement => selectedEelement !== e));
+    setSelectedList(
+      filter(selectedList, selectedEelement => selectedEelement !==e)
+    );
+  }
 
   return (
     <div className="App">
       <div>
-        <input type="text" onKeyDown={handleInputKeyDown} />
+        <input ref={inputRef}
+          type="text"
+          onKeyDown={handleInputKeyDown} />
       </div>
-      <List list={list} />
+      <List
+        list={list} 
+        selected={selectedList} 
+        onSelect={handleSelect}
+        onDelete={handleDelete} 
+        />
     </div>
   );
 };
